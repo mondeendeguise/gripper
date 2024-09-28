@@ -5,7 +5,7 @@ set -xe
 PACKAGE=gripper
 
 CC=gcc
-CFLAGS="-Wall -Wextra -pedantic"
+CFLAGS="-Wall -Wextra -pedantic -O2"
 LINKER=gcc
 LIBS="-lglfw -lGLEW -lGL -lm"
 

@@ -23,7 +23,7 @@ V4f v4f_m4x4f_product(M4x4f mat, V4f vec)
     return a;
 }
 
-M4x4f m4x4f_translation_xyz(float x, float y, float z)
+M4x4f m4x4f_translate_xyz(float x, float y, float z)
 {
     return (M4x4f) {
         .c = {
@@ -35,9 +35,9 @@ M4x4f m4x4f_translation_xyz(float x, float y, float z)
     };
 }
 
-M4x4f m4x4f_translation_v3f(V3f v)
+M4x4f m4x4f_translate_v3f(V3f v)
 {
-    return m4x4f_translation_xyz(v.c[0], v.c[1], v.c[2]);
+    return m4x4f_translate_xyz(v.c[0], v.c[1], v.c[2]);
 }
 
 M4x4f m4x4f_scale_xyz(float x, float y, float z)

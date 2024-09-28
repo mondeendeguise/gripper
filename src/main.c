@@ -25,8 +25,8 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 #define return_defer(value) { result = (value); goto defer; }
 
-static int window_width;
-static int window_height;
+static int window_width = WINDOW_WIDTH;
+static int window_height = WINDOW_HEIGHT;
 
 int main(void)
 {
@@ -155,11 +155,16 @@ int main(void)
         /*                            v3f(0.0f, 0.0f, 0.0f), */
         /*                            v3f(0.0f, 1.0f, 0.0f)); */
         M4x4f view = m4x4f_diagonal(1.0f);
+        view = m4x4f_multiply(m4x4f_translate_xyz(0.0f, 0.0f, 3.0f), view);
 
-        /* M4x4f projection = m4x4f_projection(0.7f, 70.0f, 0.1f, 10.0f); */
-        M4x4f projection = m4x4f_ortho(-1.0f, 1.0f,
-                                       -1.0f, 1.0f,
-                                       -1.0f, 10.0f);
+        /* M4x4f projection = m4x4f_ortho(-1.0f, 1.0f, */
+        /*                                -1.0f, 1.0f, */
+        /*                                -1.0f, 10.0f); */
+        /* projection = m4x4f_multiply(m4x4f_perspective(0.1f, 1.0f), projection); */
+
+        float aspect_ratio = (float) window_height / (float) window_width;
+        float fov = 70.0f;
+        M4x4f projection = m4x4f_projection(aspect_ratio, fov, 0.1f, 10.0f);
 
         M4x4f mvp = m4x4f_diagonal(1.0f);
         mvp = m4x4f_multiply(mvp, projection);
