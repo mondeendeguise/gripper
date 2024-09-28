@@ -92,17 +92,3 @@ M4x4f m4x4f_rotation_z(float rads)
         },
     };
 }
-
-M4x4f m4x4f_projection(float aspect_ratio, float fov,
-                       float near_plane, float far_plane)
-{
-    float fov_rad = 1.0f / tanf(degrees_to_radians(fov * 0.5f));
-    return (M4x4f) {
-        .c = {
-            aspect_ratio * fov_rad,0.0f,0.0f,0.0f,
-            0.0f,fov_rad,0.0f,0.0f,
-            0.0f,0.0f,far_plane / (far_plane - near_plane),1.0f,
-            0.0f,0.0f,(-far_plane * near_plane) / (far_plane - near_plane),0.0f,
-        }
-    };
-}

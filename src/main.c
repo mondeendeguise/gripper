@@ -12,6 +12,7 @@
 #include "vector.h"
 #include "matrix.h"
 #include "transforms.h"
+#include "camera.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -23,6 +24,9 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 #define return_defer(value) { result = (value); goto defer; }
+
+static int window_width;
+static int window_height;
 
 int main(void)
 {
@@ -131,7 +135,7 @@ int main(void)
 
     // Uniforms
     GLint uniform_time = glGetUniformLocation(shader_program, "time");
-    GLint uniform_model = glGetUniformLocation(shader_program, "model");
+    GLint uniform_mvp = glGetUniformLocation(shader_program, "mvp");
 
     // Wireframe
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -142,14 +146,29 @@ int main(void)
         last_time = current_time;
         glUniform1f(uniform_time, delta_time);
 
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        M4x4f model = m4x4f_rotation_z(current_time/2 * degrees_to_radians(180.0f));
+        M4x4f model = m4x4f_diagonal(1.0f);
+        model = m4x4f_multiply(model, m4x4f_rotation_z(current_time/2 * degrees_to_radians(180.0f)));
         model = m4x4f_multiply(model, m4x4f_rotation_y(current_time/2 * degrees_to_radians(180.0f)));
         model = m4x4f_multiply(model, m4x4f_rotation_x(current_time/2 * degrees_to_radians(180.0f)));
-        glUniformMatrix4fv(uniform_model, 1, GL_FALSE, model.c);
 
+        /* M4x4f view = m4x4f_look_at(v3f(1.2f, 1.2f, 1.2f), */
+        /*                            v3f(0.0f, 0.0f, 0.0f), */
+        /*                            v3f(0.0f, 1.0f, 0.0f)); */
+        M4x4f view = m4x4f_diagonal(1.0f);
 
+        /* M4x4f projection = m4x4f_projection(0.7f, 70.0f, 0.1f, 10.0f); */
+        M4x4f projection = m4x4f_ortho(-1.0f, 1.0f,
+                                       -1.0f, 1.0f,
+                                       -1.0f, 10.0f);
+
+        M4x4f mvp = m4x4f_diagonal(1.0f);
+        mvp = m4x4f_multiply(mvp, projection);
+        mvp = m4x4f_multiply(mvp, view);
+        mvp = m4x4f_multiply(mvp, model);
+
+        glUniformMatrix4fv(uniform_mvp, 1, GL_TRUE, mvp.c);
+
+        glClear(GL_COLOR_BUFFER_BIT);
         glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
@@ -186,4 +205,6 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     (void) window;
     glViewport(0, 0, width, height);
+    window_width = width;
+    window_height = height;
 }

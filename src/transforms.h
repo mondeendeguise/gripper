@@ -18,7 +18,4 @@ M4x4f m4x4f_rotation_x(float rads);
 M4x4f m4x4f_rotation_y(float rads);
 M4x4f m4x4f_rotation_z(float rads);
 
-M4x4f m4x4f_projection(float aspect_ratio, float fov,
-                       float near_plane, float far_plane);
-
 #endif // TRANSFORMS_H_

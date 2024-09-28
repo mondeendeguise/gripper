@@ -5,7 +5,7 @@ set -xe
 PACKAGE=gripper
 
 CC=gcc
-CFLAGS="-Wall -Wextra -pedantic -O2"
+CFLAGS="-Wall -Wextra -pedantic"
 LINKER=gcc
 LIBS="-lglfw -lGLEW -lGL -lm"
 
@@ -24,5 +24,6 @@ ${CC} -o ${OBJ_DIR}/mesh.c.o ${CFLAGS} -c ${SRC_DIR}/mesh.c
 ${CC} -o ${OBJ_DIR}/vector.c.o ${CFLAGS} -c ${SRC_DIR}/vector.c
 ${CC} -o ${OBJ_DIR}/matrix.c.o ${CFLAGS} -c ${SRC_DIR}/matrix.c
 ${CC} -o ${OBJ_DIR}/transforms.c.o ${CFLAGS} -c ${SRC_DIR}/transforms.c
+${CC} -o ${OBJ_DIR}/camera.c.o ${CFLAGS} -c ${SRC_DIR}/camera.c
 
 ${LINKER} -o ${BIN} ${OBJ_DIR}/*.c.o ${LIBS}
