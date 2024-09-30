@@ -24,16 +24,27 @@ static void glfw_error_callback(int error, const char *description);
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
-#define return_defer(value) { result = (value); goto defer; }
+#define return_defer(value) do { result = (value); goto defer; } while(0)
 
 static int window_width = WINDOW_WIDTH;
 static int window_height = WINDOW_HEIGHT;
 
-#define INPUT_FORWARD   1
-#define INPUT_BACKWARD  2
-#define INPUT_LEFT      4
-#define INPUT_RIGHT     8
-static unsigned char input = {0};
+#define INPUT_MOVE_FORWARD   1     // 0000 0001
+#define INPUT_MOVE_BACKWARD  2     // 0000 0010
+#define INPUT_MOVE_LEFT      4     // 0000 0100
+#define INPUT_MOVE_RIGHT     8     // 0000 1000
+
+#define INPUT_LOOK_UP        16    // 0001 0000
+#define INPUT_LOOK_DOWN      32    // 0010 0000
+#define INPUT_LOOK_LEFT      64    // 0100 0000
+#define INPUT_LOOK_RIGHT     128   // 1000 0000
+
+#define SET_BIT(num, bit) num = num | bit
+#define CLEAR_BIT(num, bit) num = num & ~ bit
+
+static unsigned short int input = {0};
+
+
 
 int main(void)
 {
@@ -52,7 +63,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME, NULL, NULL);
-    if(!window) return_defer(-1)
+    if(!window) return_defer(-1);
 
     glfwMakeContextCurrent(window);
 
@@ -145,12 +156,16 @@ int main(void)
     GLint uniform_mvp = glGetUniformLocation(shader_program, "mvp");
 
     // Wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CW);
 
+    float speed = 4.0f;
+    float sensitivity = 4.0f;
+
     V3f pos = {0};
-    float speed = 5.0f;
+    V3f facing = {0};
+    /* V3f velocity = {0}; */
 
     while(!glfwWindowShouldClose(window)) {
         current_time = glfwGetTime();
@@ -158,17 +173,25 @@ int main(void)
         last_time = current_time;
         glUniform1f(uniform_time, delta_time);
 
-        if(input & INPUT_FORWARD)  pos.c[2] += delta_time * speed;
-        if(input & INPUT_BACKWARD) pos.c[2] -= delta_time * speed;
-        if(input & INPUT_LEFT)     pos.c[0] -= delta_time * speed;
-        if(input & INPUT_RIGHT)    pos.c[0] += delta_time * speed;
+        if(input & INPUT_MOVE_FORWARD)  pos.c[2] += speed * delta_time;
+        if(input & INPUT_MOVE_LEFT)     pos.c[0] -= speed * delta_time;
+        if(input & INPUT_MOVE_BACKWARD) pos.c[2] -= speed * delta_time;
+        if(input & INPUT_MOVE_RIGHT)    pos.c[0] += speed * delta_time;
+
+        if(input & INPUT_LOOK_UP)       facing.c[0] += sensitivity * delta_time;
+        if(input & INPUT_LOOK_LEFT)     facing.c[2] -= sensitivity * delta_time;
+        if(input & INPUT_LOOK_DOWN)     facing.c[0] -= sensitivity * delta_time;
+        if(input & INPUT_LOOK_RIGHT)    facing.c[2] += sensitivity * delta_time;
 
         M4x4f model = m4x4f_diagonal(1.0f);
-        model = m4x4f_multiply(model, m4x4f_rotation_z(current_time/2 * degrees_to_radians(180.0f)));
-        model = m4x4f_multiply(model, m4x4f_rotation_y(current_time/2 * degrees_to_radians(180.0f)));
-        model = m4x4f_multiply(model, m4x4f_rotation_x(current_time/2 * degrees_to_radians(180.0f)));
+        model = m4x4f_multiply(model, m4x4f_rotate_z(current_time/2 * degrees_to_radians(180.0f)));
+        model = m4x4f_multiply(model, m4x4f_rotate_y(current_time/2 * degrees_to_radians(180.0f)));
+        model = m4x4f_multiply(model, m4x4f_rotate_x(current_time/2 * degrees_to_radians(180.0f)));
 
-        M4x4f view = m4x4f_translate_v3f(v3f_subtract(v3ff(0.0f), pos));
+        M4x4f view = m4x4f_diagonal(1.0f);
+        view = m4x4f_multiply(view, m4x4f_rotate_x(facing.c[0]));
+        view = m4x4f_multiply(view, m4x4f_rotate_y(-facing.c[2]));
+        view = m4x4f_multiply(view, m4x4f_translate_v3f(v3f_subtract(v3ff(0.0f), pos)));
 
         float aspect_ratio = (float) window_height / (float) window_width;
         float fov = 90.0f;
@@ -205,6 +228,15 @@ static void glfw_error_callback(int error, const char *description)
     fprintf(stderr, "GLFW ERROR: %s\n", description);
 }
 
+#define REGISTER_KEYMAP(controller, key, bit) \
+    case (key): {                             \
+        if(action == GLFW_PRESS) {            \
+            SET_BIT((controller), (bit));     \
+        } else if(action == GLFW_RELEASE) {   \
+            CLEAR_BIT((controller), (bit));   \
+        }                                     \
+    } break
+
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     (void) scancode;
@@ -214,37 +246,15 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
             if(action == GLFW_PRESS) glfwSetWindowShouldClose(window, GLFW_TRUE);
         } break;
 
-        case GLFW_KEY_W: {
-            if(action == GLFW_PRESS) {
-                input = input | INPUT_FORWARD;
-            } else if(action == GLFW_RELEASE) {
-                input = input & ~ INPUT_FORWARD;
-            }
-        } break;
+        REGISTER_KEYMAP(input, GLFW_KEY_W, INPUT_MOVE_FORWARD);
+        REGISTER_KEYMAP(input, GLFW_KEY_A, INPUT_MOVE_LEFT);
+        REGISTER_KEYMAP(input, GLFW_KEY_S, INPUT_MOVE_BACKWARD);
+        REGISTER_KEYMAP(input, GLFW_KEY_D, INPUT_MOVE_RIGHT);
 
-        case GLFW_KEY_S: {
-            if(action == GLFW_PRESS) {
-                input = input | INPUT_BACKWARD;
-            } else if(action == GLFW_RELEASE) {
-                input = input & ~ INPUT_BACKWARD;
-            }
-        } break;
-
-        case GLFW_KEY_A: {
-            if(action == GLFW_PRESS) {
-                input = input | INPUT_LEFT;
-            } else if(action == GLFW_RELEASE) {
-                input = input & ~ INPUT_LEFT;
-            }
-        } break;
-
-        case GLFW_KEY_D: {
-            if(action == GLFW_PRESS) {
-                input = input | INPUT_RIGHT;
-            } else if(action == GLFW_RELEASE) {
-                input = input & ~ INPUT_RIGHT;
-            }
-        } break;
+        REGISTER_KEYMAP(input, GLFW_KEY_UP, INPUT_LOOK_UP);
+        REGISTER_KEYMAP(input, GLFW_KEY_LEFT, INPUT_LOOK_LEFT);
+        REGISTER_KEYMAP(input, GLFW_KEY_DOWN, INPUT_LOOK_DOWN);
+        REGISTER_KEYMAP(input, GLFW_KEY_RIGHT, INPUT_LOOK_RIGHT);
 
         default: break;
     }

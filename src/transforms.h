@@ -14,8 +14,8 @@ M4x4f m4x4f_translate_v3f(V3f v);
 M4x4f m4x4f_scale_xyz(float x, float y, float z);
 M4x4f m4x4f_scale_v3f(V3f v);
 
-M4x4f m4x4f_rotation_x(float rads);
-M4x4f m4x4f_rotation_y(float rads);
-M4x4f m4x4f_rotation_z(float rads);
+M4x4f m4x4f_rotate_x(float rads);
+M4x4f m4x4f_rotate_y(float rads);
+M4x4f m4x4f_rotate_z(float rads);
 
 #endif // TRANSFORMS_H_

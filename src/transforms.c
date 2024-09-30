@@ -57,7 +57,7 @@ M4x4f m4x4f_scale_v3f(V3f v)
     return m4x4f_scale_xyz(v.c[0], v.c[1], v.c[2]);
 }
 
-M4x4f m4x4f_rotation_x(float rads)
+M4x4f m4x4f_rotate_x(float rads)
 {
     return (M4x4f) {
         .c = {
@@ -69,7 +69,7 @@ M4x4f m4x4f_rotation_x(float rads)
     };
 }
 
-M4x4f m4x4f_rotation_y(float rads)
+M4x4f m4x4f_rotate_y(float rads)
 {
     return (M4x4f) {
         .c = {
@@ -81,7 +81,7 @@ M4x4f m4x4f_rotation_y(float rads)
     };
 }
 
-M4x4f m4x4f_rotation_z(float rads)
+M4x4f m4x4f_rotate_z(float rads)
 {
     return (M4x4f) {
         .c = {
