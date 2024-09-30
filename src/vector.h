@@ -2,6 +2,10 @@
 #define VECTOR_H_
 
 typedef struct {
+    unsigned int c[3];
+} V3u;
+
+typedef struct {
     float c[2];
 } V2f;
 
@@ -13,6 +17,8 @@ typedef struct {
     float c[4];
 } V4f;
 
+V3u v3u(unsigned int x, unsigned int y, unsigned int z);
+
 V2f v2f(float x, float y);
 V2f v2f_add(V2f a, V2f b);
 V2f v2f_subtract(V2f a, V2f b);
@@ -23,6 +29,7 @@ float v2f_dot_product(V2f a, V2f b);
 void v2f_print(V2f a);
 
 V3f v3f(float x, float y, float z);
+V3f v3ff(float x);
 V3f v3f_add(V3f a, V3f b);
 V3f v3f_subtract(V3f a, V3f b);
 V3f v3f_normalize(V3f v);

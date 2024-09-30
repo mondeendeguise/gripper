@@ -3,6 +3,15 @@
 #include <math.h>
 #include <stdio.h>
 
+inline V3u v3u(unsigned int x, unsigned int y, unsigned int z)
+{
+    V3u a = {0};
+    a.c[0] = x;
+    a.c[1] = y;
+    a.c[2] = z;
+    return a;
+}
+
 inline V2f v2f(float x, float y)
 {
     V2f a = {0};
@@ -80,6 +89,15 @@ inline V3f v3f(float x, float y, float z)
     a.c[0] = x;
     a.c[1] = y;
     a.c[2] = z;
+    return a;
+}
+
+inline V3f v3ff(float x)
+{
+    V3f a = {0};
+    a.c[0] = x;
+    a.c[1] = x;
+    a.c[2] = x;
     return a;
 }
 
