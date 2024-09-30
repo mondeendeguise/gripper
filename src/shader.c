@@ -29,7 +29,7 @@ bool compile_shader(GLuint *shader, const char *path, GLenum type)
     if(status != GL_TRUE) {
         char buffer[512];
         glGetShaderInfoLog(*shader, 512, NULL, buffer);
-        fprintf(stderr, "failed to compile shader: %s\n", buffer);
+        fprintf(stderr, "failed to compile shader `%s`:\n\t%s", path, buffer);
 
         return false;
     }

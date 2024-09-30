@@ -13,6 +13,7 @@
 #include "matrix.h"
 #include "transforms.h"
 #include "camera.h"
+#include "sv.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -27,6 +28,12 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 static int window_width = WINDOW_WIDTH;
 static int window_height = WINDOW_HEIGHT;
+
+#define INPUT_FORWARD   1
+#define INPUT_BACKWARD  2
+#define INPUT_LEFT      4
+#define INPUT_RIGHT     8
+static unsigned char input = {0};
 
 int main(void)
 {
@@ -139,6 +146,11 @@ int main(void)
 
     // Wireframe
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
+
+    V3f pos = {0};
+    float speed = 5.0f;
 
     while(!glfwWindowShouldClose(window)) {
         current_time = glfwGetTime();
@@ -146,25 +158,21 @@ int main(void)
         last_time = current_time;
         glUniform1f(uniform_time, delta_time);
 
+        if(input & INPUT_FORWARD)  pos.c[2] += delta_time * speed;
+        if(input & INPUT_BACKWARD) pos.c[2] -= delta_time * speed;
+        if(input & INPUT_LEFT)     pos.c[0] -= delta_time * speed;
+        if(input & INPUT_RIGHT)    pos.c[0] += delta_time * speed;
+
         M4x4f model = m4x4f_diagonal(1.0f);
         model = m4x4f_multiply(model, m4x4f_rotation_z(current_time/2 * degrees_to_radians(180.0f)));
         model = m4x4f_multiply(model, m4x4f_rotation_y(current_time/2 * degrees_to_radians(180.0f)));
         model = m4x4f_multiply(model, m4x4f_rotation_x(current_time/2 * degrees_to_radians(180.0f)));
 
-        /* M4x4f view = m4x4f_look_at(v3f(1.2f, 1.2f, 1.2f), */
-        /*                            v3f(0.0f, 0.0f, 0.0f), */
-        /*                            v3f(0.0f, 1.0f, 0.0f)); */
-        M4x4f view = m4x4f_diagonal(1.0f);
-        view = m4x4f_multiply(m4x4f_translate_xyz(0.0f, 0.0f, 3.0f), view);
-
-        /* M4x4f projection = m4x4f_ortho(-1.0f, 1.0f, */
-        /*                                -1.0f, 1.0f, */
-        /*                                -1.0f, 10.0f); */
-        /* projection = m4x4f_multiply(m4x4f_perspective(0.1f, 1.0f), projection); */
+        M4x4f view = m4x4f_translate_v3f(v3f_subtract(v3ff(0.0f), pos));
 
         float aspect_ratio = (float) window_height / (float) window_width;
-        float fov = 70.0f;
-        M4x4f projection = m4x4f_projection(aspect_ratio, fov, 0.1f, 10.0f);
+        float fov = 90.0f;
+        M4x4f projection = m4x4f_projection(aspect_ratio, fov, 0.1f, 100.0f);
 
         M4x4f mvp = m4x4f_diagonal(1.0f);
         mvp = m4x4f_multiply(mvp, projection);
@@ -201,8 +209,44 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 {
     (void) scancode;
     (void) mods;
-    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    switch(key) {
+        case GLFW_KEY_ESCAPE: {
+            if(action == GLFW_PRESS) glfwSetWindowShouldClose(window, GLFW_TRUE);
+        } break;
+
+        case GLFW_KEY_W: {
+            if(action == GLFW_PRESS) {
+                input = input | INPUT_FORWARD;
+            } else if(action == GLFW_RELEASE) {
+                input = input & ~ INPUT_FORWARD;
+            }
+        } break;
+
+        case GLFW_KEY_S: {
+            if(action == GLFW_PRESS) {
+                input = input | INPUT_BACKWARD;
+            } else if(action == GLFW_RELEASE) {
+                input = input & ~ INPUT_BACKWARD;
+            }
+        } break;
+
+        case GLFW_KEY_A: {
+            if(action == GLFW_PRESS) {
+                input = input | INPUT_LEFT;
+            } else if(action == GLFW_RELEASE) {
+                input = input & ~ INPUT_LEFT;
+            }
+        } break;
+
+        case GLFW_KEY_D: {
+            if(action == GLFW_PRESS) {
+                input = input | INPUT_RIGHT;
+            } else if(action == GLFW_RELEASE) {
+                input = input & ~ INPUT_RIGHT;
+            }
+        } break;
+
+        default: break;
     }
 }
 
