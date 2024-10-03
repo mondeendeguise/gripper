@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "shader.h"
 #include "mesh.h"
@@ -13,7 +14,6 @@
 #include "matrix.h"
 #include "transforms.h"
 #include "camera.h"
-#include "sv.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -43,8 +43,6 @@ static int window_height = WINDOW_HEIGHT;
 #define CLEAR_BIT(num, bit) num = num & ~ bit
 
 static unsigned short int input = {0};
-
-
 
 int main(void)
 {
@@ -160,12 +158,13 @@ int main(void)
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CW);
 
-    float speed = 4.0f;
-    float sensitivity = 4.0f;
+    const float acceleration = 3.0f;
+    const float deceleration = 0.7f;
+    const float sensitivity = 4.0f;
 
     V3f pos = {0};
     V3f facing = {0};
-    /* V3f velocity = {0}; */
+    V3f velocity = {0};
 
     while(!glfwWindowShouldClose(window)) {
         current_time = glfwGetTime();
@@ -173,15 +172,42 @@ int main(void)
         last_time = current_time;
         glUniform1f(uniform_time, delta_time);
 
-        if(input & INPUT_MOVE_FORWARD)  pos.c[2] += speed * delta_time;
-        if(input & INPUT_MOVE_LEFT)     pos.c[0] -= speed * delta_time;
-        if(input & INPUT_MOVE_BACKWARD) pos.c[2] -= speed * delta_time;
-        if(input & INPUT_MOVE_RIGHT)    pos.c[0] += speed * delta_time;
+        /* TODO: Represent WASD movement direction as a normalized vector.
+         *       Current implementation causes diagonal movement to be faster
+         *       than movement in cardinal directions. */
+
+        if(input & INPUT_MOVE_FORWARD) {
+            velocity.c[2] += cosf(degrees_to_radians(0.0f) + facing.c[1]) * acceleration;
+            velocity.c[0] += sinf(degrees_to_radians(0.0f) + facing.c[1]) * acceleration;
+        }
+
+        if(input & INPUT_MOVE_LEFT) {
+            velocity.c[2] += cosf(degrees_to_radians(270.0f) + facing.c[1]) * acceleration;
+            velocity.c[0] += sinf(degrees_to_radians(270.0f) + facing.c[1]) * acceleration;
+        }
+
+        if(input & INPUT_MOVE_BACKWARD) {
+            velocity.c[2] += cosf(degrees_to_radians(180.0f) + facing.c[1]) * acceleration;
+            velocity.c[0] += sinf(degrees_to_radians(180.0f) + facing.c[1]) * acceleration;
+        }
+
+        if(input & INPUT_MOVE_RIGHT) {
+            velocity.c[2] += cosf(degrees_to_radians(90.0f) + facing.c[1]) * acceleration;
+            velocity.c[0] += sinf(degrees_to_radians(90.0f) + facing.c[1]) * acceleration;
+        }
+
+        if(velocity.c[0]) velocity.c[0] *= deceleration;
+        if(velocity.c[1]) velocity.c[1] *= deceleration;
+        if(velocity.c[2]) velocity.c[2] *= deceleration;
+
+        /* v3f_print(velocity); */
+
+        pos = v3f_add(pos, v3f_multiply(velocity, v3ff(delta_time)));
 
         if(input & INPUT_LOOK_UP)       facing.c[0] += sensitivity * delta_time;
-        if(input & INPUT_LOOK_LEFT)     facing.c[2] -= sensitivity * delta_time;
+        if(input & INPUT_LOOK_LEFT)     facing.c[1] -= sensitivity * delta_time;
         if(input & INPUT_LOOK_DOWN)     facing.c[0] -= sensitivity * delta_time;
-        if(input & INPUT_LOOK_RIGHT)    facing.c[2] += sensitivity * delta_time;
+        if(input & INPUT_LOOK_RIGHT)    facing.c[1] += sensitivity * delta_time;
 
         M4x4f model = m4x4f_diagonal(1.0f);
         model = m4x4f_multiply(model, m4x4f_rotate_z(current_time/2 * degrees_to_radians(180.0f)));
@@ -190,7 +216,7 @@ int main(void)
 
         M4x4f view = m4x4f_diagonal(1.0f);
         view = m4x4f_multiply(view, m4x4f_rotate_x(facing.c[0]));
-        view = m4x4f_multiply(view, m4x4f_rotate_y(-facing.c[2]));
+        view = m4x4f_multiply(view, m4x4f_rotate_y(-facing.c[1]));
         view = m4x4f_multiply(view, m4x4f_translate_v3f(v3f_subtract(v3ff(0.0f), pos)));
 
         float aspect_ratio = (float) window_height / (float) window_width;
