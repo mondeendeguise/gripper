@@ -8,12 +8,13 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "gmath/vector.h"
+#include "gmath/matrix.h"
+#include "gmath/transforms.h"
+#include "gmath/camera.h"
+
 #include "shader.h"
 #include "mesh.h"
-#include "vector.h"
-#include "matrix.h"
-#include "transforms.h"
-#include "camera.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480

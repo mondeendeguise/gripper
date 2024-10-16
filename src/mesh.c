@@ -1,5 +1,5 @@
 #include "mesh.h"
-#include "vector.h"
+#include "gmath/vector.h"
 
 Vertex vertex(V3f pos, V4f color)
 {

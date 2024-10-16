@@ -6,24 +6,27 @@ PACKAGE=gripper
 
 CC=gcc
 CFLAGS="-Wall -Wextra -pedantic -O2"
-LINKER=gcc
+LINK=gcc
 LIBS="-lglfw -lGLEW -lGL -lm"
 
 SRC_DIR=src
 BUILD_DIR=build
-OBJ_DIR=${BUILD_DIR}/obj
 BIN=${BUILD_DIR}/${PACKAGE}
 
 mkdir -p ${BUILD_DIR}
-mkdir -p ${OBJ_DIR}
+mkdir -p ${BUILD_DIR}/lib
+mkdir -p ${BUILD_DIR}/gmath
 
-${CC} -o ${OBJ_DIR}/main.c.o ${CFLAGS} -c ${SRC_DIR}/main.c
-${CC} -o ${OBJ_DIR}/fs.c.o ${CFLAGS} -c ${SRC_DIR}/fs.c
-${CC} -o ${OBJ_DIR}/shader.c.o ${CFLAGS} -c ${SRC_DIR}/shader.c
-${CC} -o ${OBJ_DIR}/mesh.c.o ${CFLAGS} -c ${SRC_DIR}/mesh.c
-${CC} -o ${OBJ_DIR}/vector.c.o ${CFLAGS} -c ${SRC_DIR}/vector.c
-${CC} -o ${OBJ_DIR}/matrix.c.o ${CFLAGS} -c ${SRC_DIR}/matrix.c
-${CC} -o ${OBJ_DIR}/transforms.c.o ${CFLAGS} -c ${SRC_DIR}/transforms.c
-${CC} -o ${OBJ_DIR}/camera.c.o ${CFLAGS} -c ${SRC_DIR}/camera.c
+${CC} -o ${BUILD_DIR}/gmath/vector.c.o ${CFLAGS} -fPIC -c ${SRC_DIR}/gmath/vector.c
+${CC} -o ${BUILD_DIR}/gmath/matrix.c.o ${CFLAGS} -fPIC -c ${SRC_DIR}/gmath/matrix.c
+${CC} -o ${BUILD_DIR}/gmath/transforms.c.o ${CFLAGS} -fPIC -c ${SRC_DIR}/gmath/transforms.c
+${CC} -o ${BUILD_DIR}/gmath/camera.c.o ${CFLAGS} -fPIC -c ${SRC_DIR}/gmath/camera.c
 
-${LINKER} -o ${BIN} ${OBJ_DIR}/*.c.o ${LIBS}
+${LINK} -o ${BUILD_DIR}/lib/libgmath.so -shared ${BUILD_DIR}/gmath/*.c.o
+
+${CC} -o ${BUILD_DIR}/main.c.o ${CFLAGS} -c ${SRC_DIR}/main.c
+${CC} -o ${BUILD_DIR}/fs.c.o ${CFLAGS} -c ${SRC_DIR}/fs.c
+${CC} -o ${BUILD_DIR}/shader.c.o ${CFLAGS} -c ${SRC_DIR}/shader.c
+${CC} -o ${BUILD_DIR}/mesh.c.o ${CFLAGS} -c ${SRC_DIR}/mesh.c
+
+${LINK} -o ${BIN} ${BUILD_DIR}/*.c.o ${LIBS} -L${BUILD_DIR}/lib -Wl,-rpath=${BUILD_DIR}/lib -lgmath
