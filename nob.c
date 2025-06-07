@@ -31,14 +31,18 @@ bool build_gmath(void)
                 nob_sb_append_cstr(&obj_path, files.items[i]);
                 nob_sb_append_cstr(&obj_path, ".o");
                 nob_sb_append_null(&obj_path);
-                
-                cmd.count = 0;
-                nob_cmd_append(&cmd, CC, "-Wall", "-Wextra", "-pedantic", "-O2");
-                nob_cmd_append(&cmd, "-fPIC");
-                nob_cmd_append(&cmd, "-c", file_path.items);
-                nob_cmd_append(&cmd, "-o", obj_path.items);
 
-                nob_da_append(&procs, nob_cmd_run_async(cmd));
+                if(nob_needs_rebuild1(obj_path.items, file_path.items)) {
+                    cmd.count = 0;
+                    nob_cmd_append(&cmd, CC, "-Wall", "-Wextra", "-pedantic", "-O2");
+                    nob_cmd_append(&cmd, "-fPIC");
+                    nob_cmd_append(&cmd, "-c", file_path.items);
+                    nob_cmd_append(&cmd, "-o", obj_path.items);
+
+                    nob_da_append(&procs, nob_cmd_run_async(cmd));
+                } else {
+                    nob_log(NOB_INFO, "  skipping %s", file_path.items);
+                }
 
                 nob_da_append(&objects, nob_temp_strdup(obj_path.items));
                 nob_sb_free(obj_path);
@@ -49,10 +53,12 @@ bool build_gmath(void)
     }
     if(!nob_procs_wait(procs)) nob_return_defer(false);
 
-    {
+    const char *output_path = "build/lib/libgmath.so";
+
+    if(nob_needs_rebuild(output_path, objects.items, objects.count)) {
         cmd.count = 0;
         nob_cmd_append(&cmd, LINK, "-shared");
-        nob_cmd_append(&cmd, "-o", "build/lib/libgmath.so");
+        nob_cmd_append(&cmd, "-o", output_path);
 
         for(size_t i = 0; i < objects.count; ++i) {
             nob_cmd_append(&cmd, objects.items[i]);
@@ -61,6 +67,8 @@ bool build_gmath(void)
         nob_cmd_append(&cmd, "-lm");
 
         if(!nob_cmd_run_sync(cmd)) nob_return_defer(false);
+    } else {
+        nob_log(NOB_INFO, "  skipping %s", output_path);
     }
 
 defer:
@@ -96,12 +104,16 @@ bool build_gripper(void)
                 nob_sb_append_cstr(&obj_path, ".o");
                 nob_sb_append_null(&obj_path);
                 
-                cmd.count = 0;
-                nob_cmd_append(&cmd, CC, "-Wall", "-Wextra", "-pedantic", "-O2");
-                nob_cmd_append(&cmd, "-c", file_path.items);
-                nob_cmd_append(&cmd, "-o", obj_path.items);
+                if(nob_needs_rebuild1(obj_path.items, file_path.items)) {
+                    cmd.count = 0;
+                    nob_cmd_append(&cmd, CC, "-Wall", "-Wextra", "-pedantic", "-O2");
+                    nob_cmd_append(&cmd, "-c", file_path.items);
+                    nob_cmd_append(&cmd, "-o", obj_path.items);
 
-                nob_da_append(&procs, nob_cmd_run_async(cmd));
+                    nob_da_append(&procs, nob_cmd_run_async(cmd));
+                } else {
+                    nob_log(NOB_INFO, "  skipping %s", file_path.items);
+                }
 
                 nob_da_append(&objects, nob_temp_strdup(obj_path.items));
                 nob_sb_free(obj_path);
@@ -112,10 +124,12 @@ bool build_gripper(void)
     }
     if(!nob_procs_wait(procs)) nob_return_defer(false);
 
-    {
+    const char *output_path = "build/gripper";
+
+    if(nob_needs_rebuild(output_path, objects.items, objects.count)) {
         cmd.count = 0;
         nob_cmd_append(&cmd, LINK);
-        nob_cmd_append(&cmd, "-o", "build/gripper");
+        nob_cmd_append(&cmd, "-o", output_path);
 
         for(size_t i = 0; i < objects.count; ++i) {
             nob_cmd_append(&cmd, objects.items[i]);
