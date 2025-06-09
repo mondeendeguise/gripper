@@ -7,6 +7,9 @@
 
 #define CC "gcc"
 #define LINK "gcc"
+#define AR "ar"
+
+#define GMATH_PATH "build/lib/libgmath.a"
 
 bool build_gmath(void)
 {
@@ -53,18 +56,16 @@ bool build_gmath(void)
     }
     if(!nob_procs_wait(procs)) nob_return_defer(false);
 
-    const char *output_path = "build/lib/libgmath.so";
+    const char *output_path = GMATH_PATH;
 
     if(nob_needs_rebuild(output_path, objects.items, objects.count)) {
         cmd.count = 0;
-        nob_cmd_append(&cmd, LINK, "-shared");
-        nob_cmd_append(&cmd, "-o", output_path);
+        nob_cmd_append(&cmd, AR, "rcs");
+        nob_cmd_append(&cmd, output_path);
 
         for(size_t i = 0; i < objects.count; ++i) {
             nob_cmd_append(&cmd, objects.items[i]);
         }
-
-        nob_cmd_append(&cmd, "-lm");
 
         if(!nob_cmd_run_sync(cmd)) nob_return_defer(false);
     } else {
@@ -126,7 +127,7 @@ bool build_gripper(void)
 
     const char *output_path = "build/gripper";
 
-    if(nob_needs_rebuild(output_path, objects.items, objects.count)) {
+    if(nob_needs_rebuild(output_path, objects.items, objects.count) || nob_needs_rebuild1(output_path, GMATH_PATH)) {
         cmd.count = 0;
         nob_cmd_append(&cmd, LINK);
         nob_cmd_append(&cmd, "-o", output_path);
@@ -136,7 +137,7 @@ bool build_gripper(void)
         }
 
         nob_cmd_append(&cmd, "-lglfw", "-lGLEW", "-lGL", "-lm");
-        nob_cmd_append(&cmd, "-Lbuild/lib", "-Wl,-rpath=build/lib", "-lgmath");
+        nob_cmd_append(&cmd, "-Lbuild/lib", "-l:libgmath.a");
 
         if(!nob_cmd_run_sync(cmd)) nob_return_defer(false);
     }
