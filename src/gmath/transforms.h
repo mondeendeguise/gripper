@@ -1,5 +1,5 @@
-#ifndef TRANSFORMS_H_
-#define TRANSFORMS_H_
+#ifndef GMATH_TRANSFORMS_H_
+#define GMATH_TRANSFORMS_H_
 
 #include "vector.h"
 #include "matrix.h"
@@ -18,4 +18,4 @@ M4x4f m4x4f_rotate_x(float rads);
 M4x4f m4x4f_rotate_y(float rads);
 M4x4f m4x4f_rotate_z(float rads);
 
-#endif // TRANSFORMS_H_
+#endif // GMATH_TRANSFORMS_H_

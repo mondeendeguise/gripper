@@ -11,7 +11,8 @@
 #include "gmath/vector.h"
 #include "gmath/matrix.h"
 #include "gmath/transforms.h"
-#include "gmath/camera.h"
+#include "gmath/perspective.h"
+#include "gmath/quaternion.h"
 
 #include "shader.h"
 #include "mesh.h"
@@ -209,6 +210,11 @@ int main(void)
         if(input & INPUT_LOOK_LEFT)     facing.c[1] -= sensitivity * delta_time;
         if(input & INPUT_LOOK_DOWN)     facing.c[0] -= sensitivity * delta_time;
         if(input & INPUT_LOOK_RIGHT)    facing.c[1] += sensitivity * delta_time;
+
+        Quaternion rotation = quaternion_identity();
+        rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(0.0f, 1.0f, 0.0f)));
+        rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(1.0f, 0.0f, 0.0f)));
+        rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(0.0f, 0.0f, 1.0f)));
 
         M4x4f model = m4x4f_diagonal(1.0f);
         model = m4x4f_multiply(model, m4x4f_rotate_z(current_time/2 * degrees_to_radians(180.0f)));

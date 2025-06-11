@@ -1,5 +1,5 @@
-#ifndef VECTOR_H_
-#define VECTOR_H_
+#ifndef GMATH_VECTOR_H_
+#define GMATH_VECTOR_H_
 
 typedef struct {
     unsigned int c[3];
@@ -48,4 +48,4 @@ V4f v4f_normalize(V4f v);
 float v4f_dot_product(V4f a, V4f b);
 void v4f_print(V4f a);
 
-#endif // VECTOR_H_
+#endif // GMATH_VECTOR_H_

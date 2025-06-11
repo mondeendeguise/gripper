@@ -1,5 +1,5 @@
-#ifndef CAMERA_H_
-#define CAMERA_H_
+#ifndef GMATH_PERSPECTIVE_H_
+#define GMATH_PERSPECTIVE_H_
 
 #include "vector.h"
 #include "matrix.h"
@@ -17,4 +17,4 @@ M4x4f m4x4f_projection(float aspect_ratio, float fov,
 
 V4f m4x4f_v4f_project(M4x4f m, V4f v);
 
-#endif // CAMERA_H_
+#endif // GMATH_PERSPECTIVE_H_

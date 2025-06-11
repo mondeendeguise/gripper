@@ -1,5 +1,5 @@
-#ifndef MATRIX_H_
-#define MATRIX_H_
+#ifndef GMATH_MATRIX_H_
+#define GMATH_MATRIX_H_
 
 #include "vector.h"
 
@@ -36,4 +36,4 @@ M4x4f m4x4f_subtract(M4x4f a, M4x4f b);
 M4x4f m4x4f_scale(M4x4f m, float s);
 M4x4f m4x4f_multiply(M4x4f a, M4x4f b);
 
-#endif // MATRIX_H_
+#endif // GMATH_MATRIX_H_
