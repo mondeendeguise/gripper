@@ -211,15 +211,28 @@ int main(void)
         if(input & INPUT_LOOK_DOWN)     facing.c[0] -= sensitivity * delta_time;
         if(input & INPUT_LOOK_RIGHT)    facing.c[1] += sensitivity * delta_time;
 
-        Quaternion rotation = quaternion_identity();
-        rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(0.0f, 1.0f, 0.0f)));
-        rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(1.0f, 0.0f, 0.0f)));
-        rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(0.0f, 0.0f, 1.0f)));
+#include "object.h"
+        Object3D cube = {
+            .position = {0},
+            .orientation = quaternion_identity(),
+        };
 
-        M4x4f model = m4x4f_diagonal(1.0f);
-        model = m4x4f_multiply(model, m4x4f_rotate_z(current_time/2 * degrees_to_radians(180.0f)));
-        model = m4x4f_multiply(model, m4x4f_rotate_y(current_time/2 * degrees_to_radians(180.0f)));
-        model = m4x4f_multiply(model, m4x4f_rotate_x(current_time/2 * degrees_to_radians(180.0f)));
+        cube.orientation = quaternion_combine(cube.orientation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(0.0f, 1.0f, 0.0f)));
+        cube.orientation = quaternion_combine(cube.orientation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(0.0f, 0.0f, 1.0f)));
+        cube.orientation = quaternion_combine(cube.orientation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(1.0f, 0.0f, 0.0f)));
+
+        // Quaternion rotation = quaternion_identity();
+        // rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(0.0f, 1.0f, 0.0f)));
+        // rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(1.0f, 0.0f, 0.0f)));
+        // rotation = quaternion_combine(rotation, quaternion_from_angle_axis(current_time/2 * degrees_to_radians(180.0f), v3f(0.0f, 0.0f, 1.0f)));
+
+        // rotation = quaternion_transform_vector(rotation, model_pos);
+
+        M4x4f model = quaternion_to_rotation_matrix(cube.orientation);
+        // M4x4f model = m4x4f_diagonal(1.0f);
+        // model = m4x4f_multiply(model, m4x4f_rotate_z(current_time/2 * degrees_to_radians(180.0f)));
+        // model = m4x4f_multiply(model, m4x4f_rotate_y(current_time/2 * degrees_to_radians(180.0f)));
+        // model = m4x4f_multiply(model, m4x4f_rotate_x(current_time/2 * degrees_to_radians(180.0f)));
 
         M4x4f view = m4x4f_diagonal(1.0f);
         view = m4x4f_multiply(view, m4x4f_rotate_x(facing.c[0]));
